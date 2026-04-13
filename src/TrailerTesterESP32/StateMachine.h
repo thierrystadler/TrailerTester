@@ -3,19 +3,11 @@
 #include <Arduino.h>
 
 #include "Relays.h"
+#include "TestSequence.h"
 
 enum class Mode {
   ConstantPower,
   LightingTest,
-};
-
-enum class TestStep {
-  Tail,
-  Brake,
-  LeftIndicator,
-  RightIndicator,
-  Reverse,
-  RearFog,
 };
 
 class StateMachine {

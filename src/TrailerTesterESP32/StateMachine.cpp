@@ -26,26 +26,7 @@ void StateMachine::setMode(Mode mode) {
 void StateMachine::nextStep() {
   if (mode_ != Mode::LightingTest) return;
 
-  switch (step_) {
-    case TestStep::Tail:
-      step_ = TestStep::Brake;
-      break;
-    case TestStep::Brake:
-      step_ = TestStep::LeftIndicator;
-      break;
-    case TestStep::LeftIndicator:
-      step_ = TestStep::RightIndicator;
-      break;
-    case TestStep::RightIndicator:
-      step_ = TestStep::Reverse;
-      break;
-    case TestStep::Reverse:
-      step_ = TestStep::RearFog;
-      break;
-    case TestStep::RearFog:
-      step_ = TestStep::Tail;
-      break;
-  }
+  step_ = nextTestStep(step_);
 
   blinkPhaseStartMs_ = millis();
   applyOutputs_();

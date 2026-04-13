@@ -25,3 +25,41 @@ jobs:
       - name: Compile
         run: |
           arduino-cli compile --warnings all --fqbn esp32:esp32:d1_mini32 "src/TrailerTesterESP32"
+
+  host-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and run host tests
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Werror -o test_sequence tests/host/test_sequence.cpp
+          ./test_sequence
+
+  build-esp32-aunit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install ESP32 core
+        run: |
+          arduino-cli config init
+          arduino-cli config set board_manager.additional_urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+
+      - name: Install libraries
+        run: |
+          arduino-cli lib update-index
+          arduino-cli lib install AUnit
+
+      - name: Compile AUnit test sketch
+        run: |
+          arduino-cli compile --warnings all --fqbn esp32:esp32:d1_mini32 "tests/esp32/SequenceAUnit"
