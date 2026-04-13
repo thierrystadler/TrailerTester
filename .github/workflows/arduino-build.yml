@@ -24,4 +24,4 @@ jobs:
 
       - name: Compile
         run: |
-          arduino-cli compile --warnings all --fqbn esp32:esp32:esp32 "src/Arduino/TrailerTesterESP32"
+          arduino-cli compile --warnings all --fqbn esp32:esp32:d1_mini32 "src/TrailerTesterESP32"
