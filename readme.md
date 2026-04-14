@@ -9,7 +9,9 @@ It can also provide a **12V constant output** (depending on your power electroni
 
 - Tests common trailer light circuits (e.g. left/right indicator, brake, tail, reverse, fog — depending on connector type).
 - Allows switching outputs on/off for verification.
-- Provides a 12V “always on” supply output (if enabled in your build) for functional testing.
+- Provides a 12V "always on" supply output (if enabled in your build) for functional testing.
+- **Bluetooth control** — connect from the companion mobile app to switch modes and control individual lights.
+- **Mobile app** (.NET MAUI) for Android & iOS to remotely operate the tester.
 - Designed to be powered from an **18V battery pack** (e.g. a common tool battery) using a suitable DC/DC converter.
 
 ## Supported connectors
@@ -74,14 +76,19 @@ Document at least:
 
 ```bash
 src/
-  TrailerTesterESP32/          Main Arduino sketch + modules
+  TrailerTesterESP32/          Arduino firmware (ESP32)
     TrailerTesterESP32.ino     Entry point (setup / loop)
     config.h                   Pin assignments, timing, constants
     Relays.h / .cpp            Relay driver abstraction
     Button.h / .cpp            Debounced button input
     StateMachine.h / .cpp      Mode & test-step logic
     TestSequence.h             Pure step-sequencing (shared with tests)
-    Commands.h / .cpp          Serial command interface (for future app)
+    Commands.h / .cpp          Serial command interface
+    BluetoothHandler.h / .cpp  Bluetooth Serial command interface
+  TrailerTesterApp/            .NET MAUI mobile app (Android & iOS)
+    Services/                  Bluetooth communication service
+    ViewModels/                UI state and command logic
+    MainPage.xaml              User interface
 tests/
   host/
     test_sequence.cpp          Host-side unit test (g++, runs in CI)
@@ -100,9 +107,16 @@ Every push and pull request triggers three jobs:
 - **host-tests** — builds and runs the host-side unit tests with `g++`
 - **build-esp32-aunit** — compiles the AUnit test sketch for ESP32
 
-## Future plans
+## Mobile app
 
-- **Mobile app** (via WiFi / BLE) to remotely control the tester and switch outputs directly from a phone.
+The companion **TrailerTesterApp** (under `src/TrailerTesterApp/`) is a .NET MAUI app for Android and iOS.
+It connects to the ESP32 via Bluetooth and allows:
+
+- Switching between **Power Mode** and **Test Mode**
+- Selecting individual lights (Tail, Brake, Left/Right Indicator, Reverse, Rear Fog)
+- Viewing real-time status and command responses
+
+See [`src/TrailerTesterApp/README.md`](src/TrailerTesterApp/README.md) for details.
 
 ## Disclaimer
 

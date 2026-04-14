@@ -1,99 +1,97 @@
 # Trailer Tester App
 
-.NET MAUI mobile application for controlling the TrailerTester ESP32 device via Bluetooth.
+.NET MAUI mobile app (Android & iOS) for controlling the TrailerTester ESP32 via Bluetooth.
 
 ## Features
 
-- **Bluetooth Connection**: Scan and connect to TrailerTester devices
-- **Mode Switching**: Toggle between Power Mode and Test Mode
-- **Light Control**: Control individual trailer lights (Tail, Brake, Indicators, Reverse, Fog)
-- **Real-time Feedback**: View command responses and status messages
-- **Cross-Platform**: Runs on Android and iOS
+- **Bluetooth connection**: Scan and connect to TrailerTester devices
+- **Mode switching**: Toggle between constant power and lighting test mode
+- **Light control**: Select individual trailer lights (only one active at a time)
+- **Real-time feedback**: View command responses and status messages from the ESP32
+- **Cross-platform**: Runs on Android and iOS
 
 ## Requirements
 
-- .NET 8.0 or later
-- Visual Studio 2022 or Visual Studio Code with .NET MAUI workload
+- .NET 10.0 or later
+- Visual Studio 2022+ or VS Code with .NET MAUI workload
 - Android SDK (for Android deployment)
-- Xcode (for iOS deployment on macOS)
+- Xcode (for iOS deployment, macOS only)
 
 ## Setup
 
-1. Ensure the TrailerTester ESP32 device is powered on and Bluetooth is enabled
+1. Power on the TrailerTester ESP32 (Bluetooth enabled)
 2. Build and deploy the app to your Android or iOS device
-3. Grant Bluetooth and Location permissions when prompted
+3. Grant Bluetooth and location permissions when prompted
 
 ## Usage
 
-### Connecting to Device
+### Connecting to a device
 
 1. Tap "Scan for Devices"
-2. Select "TrailerTester" from the list of discovered devices
+2. Select "TrailerTester" from the discovered devices list
 3. Wait for connection confirmation
 
-### Mode Selection
+### Mode selection
 
-- **Test Mode**: Allows individual light control and testing
-- **Power Mode**: Provides constant power supply
+- **Test Mode**: Control individual lighting circuits
+- **Power Mode**: Constant 12V supply at the trailer connector
 
-### Light Control (Test Mode Only)
+### Light control (Test Mode only)
 
-Select individual lights:
-- **Tail**: Tail lights
-- **Brake**: Brake lights
-- **Left/Right Indicator**: Turn signals
-- **Reverse**: Reverse lights
-- **Fog**: Rear fog lights
+Select a single light (only one active at a time):
+
+- **Tail** — Tail / parking lights
+- **Brake** — Brake lights
+- **Left Indicator** — Left turn signal
+- **Right Indicator** — Right turn signal
+- **Reverse** — Reverse light
+- **Rear Fog** — Rear fog light
 
 Use "Next Step" to cycle through all lights sequentially.
 
-## Bluetooth Commands
+## Bluetooth commands
 
 The app sends the following commands to the ESP32:
 
-- `MODE POWER` - Switch to power mode
-- `MODE TEST` - Switch to test mode
-- `LIGHT <type>` - Activate specific light (TAIL, BRAKE, LEFT, RIGHT, REVERSE, FOG)
-- `NEXT` - Next test step
+| Command | Description |
+|---|---|
+| `MODE POWER` | Activate constant power mode |
+| `MODE TEST` | Activate lighting test mode |
+| `LIGHT TAIL` | Turn on tail lights |
+| `LIGHT BRAKE` | Turn on brake lights |
+| `LIGHT LEFT` | Turn on left indicator |
+| `LIGHT RIGHT` | Turn on right indicator |
+| `LIGHT REVERSE` | Turn on reverse light |
+| `LIGHT FOG` | Turn on rear fog light |
+| `NEXT` | Next test step |
+| `STATUS` | Query current status |
 
 ## Permissions
 
 ### Android
-- BLUETOOTH
-- BLUETOOTH_ADMIN
-- BLUETOOTH_SCAN
-- BLUETOOTH_CONNECT
-- ACCESS_FINE_LOCATION
-- ACCESS_COARSE_LOCATION
+
+- `BLUETOOTH`, `BLUETOOTH_ADMIN`
+- `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`
+- `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`
 
 ### iOS
-- NSBluetoothAlwaysUsageDescription
-- NSBluetoothPeripheralUsageDescription
+
+- `NSBluetoothAlwaysUsageDescription`
+- `NSBluetoothPeripheralUsageDescription`
 
 ## Troubleshooting
 
-**Cannot find device:**
-- Ensure Bluetooth is enabled on your phone
-- Check that the ESP32 is powered on
-- Grant location permissions (required for Bluetooth scanning on Android)
-
-**Connection fails:**
-- Try restarting the ESP32 device
-- Ensure no other device is connected to the TrailerTester
-- Check Bluetooth permissions are granted
-
-**Commands not working:**
-- Verify connection status
-- Check the Messages log for error responses
-- Ensure you're in the correct mode (Test/Power)
+- **Device not found**: Is Bluetooth enabled? Is the ESP32 powered on? Location permission granted (required on Android)?
+- **Connection failed**: Restart the ESP32, ensure no other device is connected
+- **Commands not working**: Check connection status, review the messages log, verify you are in the correct mode
 
 ## Architecture
 
-- **Services**: `BluetoothService` handles BLE communication using Plugin.BLE
-- **ViewModels**: `MainViewModel` manages UI state and command logic
-- **Views**: `MainPage` provides the user interface
-- **Converters**: `InvertedBoolConverter` for UI binding logic
+- **Services/** — `BluetoothService`: BLE communication via Plugin.BLE
+- **ViewModels/** — `MainViewModel`: UI state and command logic
+- **MainPage.xaml** — User interface
+- **Converters/** — `InvertedBoolConverter` for UI bindings
 
 ## Dependencies
 
-- Plugin.BLE (3.1.0) - Cross-platform Bluetooth Low Energy library
+- [Plugin.BLE](https://github.com/dotnet-bluetooth-le/dotnet-bluetooth-le) 3.1.0
