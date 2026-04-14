@@ -51,6 +51,32 @@ void Commands::handleLine_(const String& line) {
     return;
   }
 
+  if (cmd == "RELAY") {
+    String indexStr = nextToken_(rest);
+    String stateStr = nextToken_(rest);
+    stateStr.toUpperCase();
+
+    int index = indexStr.toInt();
+    if (index < 0 || index >= 8) {
+      Serial.println("ERR");
+      return;
+    }
+
+    bool state = false;
+    if (stateStr == "ON" || stateStr == "1") {
+      state = true;
+    } else if (stateStr == "OFF" || stateStr == "0") {
+      state = false;
+    } else {
+      Serial.println("ERR");
+      return;
+    }
+
+    sm_.setRelay(index, state);
+    Serial.println("OK");
+    return;
+  }
+
   Serial.println("ERR");
 }
 

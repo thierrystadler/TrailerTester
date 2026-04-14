@@ -25,4 +25,6 @@ static constexpr uint32_t BUTTON_DEBOUNCE_MS = 40;
 static constexpr uint32_t INDICATOR_PERIOD_MS = 1000;
 static constexpr uint32_t INDICATOR_ON_MS = 500;
 
+static constexpr const char* BT_DEVICE_NAME = "TrailerTester";
+
 }  // namespace cfg

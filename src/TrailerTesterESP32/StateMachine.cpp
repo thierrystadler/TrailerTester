@@ -16,6 +16,10 @@ void StateMachine::setIndicatorTiming(uint32_t periodMs, uint32_t onMs) {
   indicatorOnMs_ = onMs;
 }
 
+void StateMachine::setRelay(uint8_t index, bool on) {
+  relays_.set(index, on);
+}
+
 void StateMachine::setMode(Mode mode) {
   if (mode_ == mode) return;
   mode_ = mode;
@@ -27,6 +31,15 @@ void StateMachine::nextStep() {
   if (mode_ != Mode::LightingTest) return;
 
   step_ = nextTestStep(step_);
+
+  blinkPhaseStartMs_ = millis();
+  applyOutputs_();
+}
+
+void StateMachine::setTestStep(TestStep step) {
+  if (mode_ != Mode::LightingTest) return;
+
+  step_ = step;
 
   blinkPhaseStartMs_ = millis();
   applyOutputs_();

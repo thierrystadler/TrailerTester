@@ -18,11 +18,14 @@ class StateMachine {
   Mode mode() const { return mode_; }
 
   void nextStep();
+  void setTestStep(TestStep step);
   TestStep step() const { return step_; }
 
   void update();
 
   void setIndicatorTiming(uint32_t periodMs, uint32_t onMs);
+
+  void setRelay(uint8_t index, bool on);
 
  private:
   Relays& relays_;
