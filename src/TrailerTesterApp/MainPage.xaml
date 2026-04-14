@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:TrailerTesterApp.ViewModels"
+             x:Class="TrailerTesterApp.MainPage"
+             Title="Trailer Tester">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            
+            <!-- Connection Section -->
+            <Frame BorderColor="Gray" CornerRadius="10" Padding="15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Bluetooth Connection" FontSize="18" FontAttributes="Bold"/>
+                    
+                    <Label Text="{Binding StatusMessage}" FontSize="14" TextColor="Gray"/>
+                    
+                    <Button Text="Scan for Devices" 
+                            Command="{Binding ScanCommand}"
+                            BackgroundColor="#2196F3"/>
+                    
+                    <CollectionView ItemsSource="{Binding Devices}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame Margin="0,5" Padding="10" BorderColor="LightGray">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=ConnectCommand}"
+                                                              CommandParameter="{Binding .}"/>
+                                    </Frame.GestureRecognizers>
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Name}" FontAttributes="Bold"/>
+                                        <Label Text="{Binding Id}" FontSize="12" TextColor="Gray"/>
+                                    </VerticalStackLayout>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    
+                    <Label Text="{Binding ConnectedDeviceName, StringFormat='Connected: {0}'}"
+                           IsVisible="{Binding IsConnected}"
+                           FontAttributes="Bold"
+                           TextColor="Green"/>
+                    
+                    <Button Text="Disconnect" 
+                            Command="{Binding DisconnectCommand}"
+                            IsVisible="{Binding IsConnected}"
+                            BackgroundColor="#F44336"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Mode Selection -->
+            <Frame BorderColor="Gray" CornerRadius="10" Padding="15" IsVisible="{Binding IsConnected}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Mode Selection" FontSize="18" FontAttributes="Bold"/>
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Text="Test Mode" 
+                                Grid.Column="0"
+                                Clicked="OnTestModeClicked"/>
+                        <Button Text="Power Mode" 
+                                Grid.Column="1"
+                                Clicked="OnPowerModeClicked"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Light Control -->
+            <Frame BorderColor="Gray" CornerRadius="10" Padding="15" 
+                   IsVisible="{Binding IsConnected}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Light Control" FontSize="18" FontAttributes="Bold"/>
+                    <Label Text="(Only available in Test Mode)" FontSize="12" TextColor="Gray" IsVisible="{Binding IsPowerMode}"/>
+                    
+                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*" 
+                          RowSpacing="10" ColumnSpacing="10">
+                        
+                        <Button Text="Tail" Grid.Row="0" Grid.Column="0"
+                                Command="{Binding SetLightCommand}" CommandParameter="TAIL"
+                                BackgroundColor="#FF9800"/>
+                        <Button Text="Brake" Grid.Row="0" Grid.Column="1"
+                                Command="{Binding SetLightCommand}" CommandParameter="BRAKE"
+                                BackgroundColor="#F44336"/>
+                        
+                        <Button Text="Left Indicator" Grid.Row="1" Grid.Column="0"
+                                Command="{Binding SetLightCommand}" CommandParameter="LEFT"
+                                BackgroundColor="#FFC107"/>
+                        <Button Text="Right Indicator" Grid.Row="1" Grid.Column="1"
+                                Command="{Binding SetLightCommand}" CommandParameter="RIGHT"
+                                BackgroundColor="#FFC107"/>
+                        
+                        <Button Text="Reverse" Grid.Row="2" Grid.Column="0"
+                                Command="{Binding SetLightCommand}" CommandParameter="REVERSE"
+                                BackgroundColor="#FFFFFF" TextColor="Black"/>
+                        <Button Text="Rear Fog" Grid.Row="2" Grid.Column="1"
+                                Command="{Binding SetLightCommand}" CommandParameter="FOG"
+                                BackgroundColor="#FF5722"/>
+                    </Grid>
+                    
+                    <Button Text="Next Step" 
+                            Command="{Binding NextStepCommand}"
+                            BackgroundColor="#4CAF50"
+                            Margin="0,10,0,0"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Messages Log -->
+            <Frame BorderColor="Gray" CornerRadius="10" Padding="15" IsVisible="{Binding IsConnected}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Messages" FontSize="18" FontAttributes="Bold"/>
+                    <CollectionView ItemsSource="{Binding Messages}" HeightRequest="200">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Label Text="{Binding .}" FontSize="12" Padding="2"/>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+            
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
