@@ -127,6 +127,11 @@ void BluetoothHandler::handleLine_(const String& line) {
     String arg = nextToken_(rest);
     arg.toUpperCase();
 
+    if (arg == "OFF") {
+      sm_.setTestStep(TestStep::Off);
+      println("OK LIGHT OFF");
+      return;
+    }
     if (arg == "TAIL") {
       sm_.setTestStep(TestStep::Tail);
       println("OK LIGHT TAIL");
@@ -159,6 +164,12 @@ void BluetoothHandler::handleLine_(const String& line) {
     }
 
     println("ERR INVALID_LIGHT");
+    return;
+  }
+
+  if (cmd == "ALLOFF" || cmd == "OFF") {
+    sm_.setTestStep(TestStep::Off);
+    println("OK ALLOFF");
     return;
   }
 
@@ -198,7 +209,8 @@ void BluetoothHandler::handleLine_(const String& line) {
   if (cmd == "HELP") {
     println("Commands:");
     println("  MODE POWER|TEST - Set mode");
-    println("  LIGHT TAIL|BRAKE|LEFT|RIGHT|REVERSE|FOG");
+    println("  LIGHT OFF|TAIL|BRAKE|LEFT|RIGHT|REVERSE|FOG");
+    println("  ALLOFF - Turn all lights off");
     println("  NEXT - Next test step");
     println("  RELAY <0-7> ON|OFF - Control relay");
     println("  STATUS - Get current status");

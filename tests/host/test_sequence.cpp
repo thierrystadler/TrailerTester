@@ -3,7 +3,9 @@
 #include "../../src/TrailerTesterESP32/TestSequence.h"
 
 int main() {
-  TestStep s = TestStep::Tail;
+  TestStep s = TestStep::Off;
+  s = nextTestStep(s);
+  assert(s == TestStep::Tail);
   s = nextTestStep(s);
   assert(s == TestStep::Brake);
   s = nextTestStep(s);
@@ -15,7 +17,7 @@ int main() {
   s = nextTestStep(s);
   assert(s == TestStep::RearFog);
   s = nextTestStep(s);
-  assert(s == TestStep::Tail);
+  assert(s == TestStep::Off);
 
   return 0;
 }

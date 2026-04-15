@@ -30,7 +30,7 @@ class StateMachine {
  private:
   Relays& relays_;
   Mode mode_ = Mode::LightingTest;
-  TestStep step_ = TestStep::Tail;
+  TestStep step_ = TestStep::Off;
 
   uint32_t indicatorPeriodMs_ = 1000;
   uint32_t indicatorOnMs_ = 500;

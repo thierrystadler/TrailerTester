@@ -75,6 +75,7 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand DisconnectCommand { get; }
     public ICommand SetLightCommand { get; }
     public ICommand NextStepCommand { get; }
+    public ICommand AllOffCommand { get; }
 
     public MainViewModel(IBluetoothService bluetoothService)
     {
@@ -87,6 +88,7 @@ public class MainViewModel : INotifyPropertyChanged
         DisconnectCommand = new Command(async () => await DisconnectAsync());
         SetLightCommand = new Command<string>(async (light) => await SetLightAsync(light));
         NextStepCommand = new Command(async () => await NextStepAsync());
+        AllOffCommand = new Command(async () => await AllOffAsync());
 
         StatusMessage = "Not connected";
     }
@@ -201,6 +203,22 @@ public class MainViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             StatusMessage = $"Next step failed: {ex.Message}";
+        }
+    }
+
+    private async Task AllOffAsync()
+    {
+        if (!IsConnected) return;
+
+        try
+        {
+            await _bluetoothService.SendCommandAsync("ALLOFF");
+            SelectedLight = null;
+            StatusMessage = "All lights off";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"All off failed: {ex.Message}";
         }
     }
 

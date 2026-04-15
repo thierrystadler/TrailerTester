@@ -14,8 +14,9 @@ static constexpr uint8_t RELAY_PINS[RELAY_COUNT] = {
     23, 22, 21, 19, 18, 17, 16, 4,
 };
 
-static constexpr uint8_t MODE_SWITCH_PIN = 32;
-static constexpr bool MODE_SWITCH_PULLUP = true;
+static constexpr uint8_t MODE_BUTTON_PIN = 32;
+static constexpr bool MODE_BUTTON_PULLUP = true;
+static constexpr uint8_t MODE_BUTTON_LED_PIN = 25;
 
 static constexpr uint8_t NEXT_BUTTON_PIN = 33;
 static constexpr bool NEXT_BUTTON_PULLUP = true;

@@ -1,6 +1,7 @@
 #pragma once
 
 enum class TestStep {
+  Off,
   Tail,
   Brake,
   LeftIndicator,
@@ -11,6 +12,8 @@ enum class TestStep {
 
 constexpr TestStep nextTestStep(TestStep step) {
   switch (step) {
+    case TestStep::Off:
+      return TestStep::Tail;
     case TestStep::Tail:
       return TestStep::Brake;
     case TestStep::Brake:
@@ -22,7 +25,7 @@ constexpr TestStep nextTestStep(TestStep step) {
     case TestStep::Reverse:
       return TestStep::RearFog;
     case TestStep::RearFog:
-      return TestStep::Tail;
+      return TestStep::Off;
   }
-  return TestStep::Tail;
+  return TestStep::Off;
 }

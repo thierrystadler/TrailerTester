@@ -23,6 +23,7 @@ void StateMachine::setRelay(uint8_t index, bool on) {
 void StateMachine::setMode(Mode mode) {
   if (mode_ == mode) return;
   mode_ = mode;
+  step_ = TestStep::Off;
   blinkPhaseStartMs_ = millis();
   applyOutputs_();
 }
@@ -71,6 +72,8 @@ void StateMachine::setTestOutputs_(bool blinkOn) {
   relays_.set(RELAY_MODE, false);
 
   switch (step_) {
+    case TestStep::Off:
+      break;
     case TestStep::Tail:
       relays_.set(RELAY_TAIL, true);
       break;

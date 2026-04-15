@@ -7,7 +7,9 @@
 using namespace aunit;
 
 test(next_step_cycles) {
-  TestStep s = TestStep::Tail;
+  TestStep s = TestStep::Off;
+  s = nextTestStep(s);
+  assertEqual(static_cast<int>(s), static_cast<int>(TestStep::Tail));
   s = nextTestStep(s);
   assertEqual(static_cast<int>(s), static_cast<int>(TestStep::Brake));
   s = nextTestStep(s);
@@ -19,7 +21,7 @@ test(next_step_cycles) {
   s = nextTestStep(s);
   assertEqual(static_cast<int>(s), static_cast<int>(TestStep::RearFog));
   s = nextTestStep(s);
-  assertEqual(static_cast<int>(s), static_cast<int>(TestStep::Tail));
+  assertEqual(static_cast<int>(s), static_cast<int>(TestStep::Off));
 }
 
 void setup() {
