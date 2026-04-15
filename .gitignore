@@ -1,0 +1,42 @@
+# ===== Arduino / ESP32 =====
+*.elf
+*.bin
+*.hex
+*.map
+build/
+
+# ===== .NET / MAUI =====
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.DotSettings.user
+
+# NuGet
+**/packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+
+# ===== OS / Editor =====
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# JetBrains
+.idea/
+
+# VS Code
+.vscode/
+
+# ===== Misc =====
+*.log
+*.tmp

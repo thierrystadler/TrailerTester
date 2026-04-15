@@ -1,20 +1,76 @@
 #include "BluetoothHandler.h"
 
+#define SERVICE_UUID        "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+#define CHARACTERISTIC_TX   "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+#define CHARACTERISTIC_RX   "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+
+static String rxBuffer_;
+
 BluetoothHandler::BluetoothHandler(StateMachine& sm, const char* deviceName)
     : sm_(sm), deviceName_(deviceName) {}
 
 void BluetoothHandler::begin() {
   line_.reserve(64);
-  if (!bt_.begin(deviceName_)) {
-    Serial.println("Bluetooth init failed!");
-  } else {
-    Serial.print("Bluetooth started: ");
-    Serial.println(deviceName_);
+
+  BLEDevice::init(deviceName_);
+  pServer_ = BLEDevice::createServer();
+  pServer_->setCallbacks(this);
+
+  BLEService* pService = pServer_->createService(SERVICE_UUID);
+
+  pTxCharacteristic_ = pService->createCharacteristic(
+      CHARACTERISTIC_TX,
+      BLECharacteristic::PROPERTY_NOTIFY);
+  pTxCharacteristic_->addDescriptor(new BLE2902());
+
+  BLECharacteristic* pRxCharacteristic = pService->createCharacteristic(
+      CHARACTERISTIC_RX,
+      BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
+  pRxCharacteristic->setCallbacks(this);
+
+  pService->start();
+
+  BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x06);
+  BLEDevice::startAdvertising();
+
+  Serial.print("BLE started: ");
+  Serial.println(deviceName_);
+}
+
+bool BluetoothHandler::isConnected() { return connected_; }
+
+void BluetoothHandler::onConnect(BLEServer* pServer) {
+  connected_ = true;
+  Serial.println("BLE client connected");
+}
+
+void BluetoothHandler::onDisconnect(BLEServer* pServer) {
+  connected_ = false;
+  Serial.println("BLE client disconnected");
+  BLEDevice::startAdvertising();
+}
+
+void BluetoothHandler::onWrite(BLECharacteristic* pCharacteristic) {
+  String value = pCharacteristic->getValue().c_str();
+  if (value.length() > 0) {
+    rxBuffer_ += value;
   }
 }
 
-bool BluetoothHandler::isConnected() const {
-  return bt_.hasClient();
+void BluetoothHandler::println(const String& msg) {
+  if (!connected_ || pTxCharacteristic_ == nullptr) return;
+
+  String out = msg + "\n";
+  const size_t mtu = 20;
+  for (size_t i = 0; i < out.length(); i += mtu) {
+    String chunk = out.substring(i, i + mtu);
+    pTxCharacteristic_->setValue(chunk.c_str());
+    pTxCharacteristic_->notify();
+    delay(10);
+  }
 }
 
 String BluetoothHandler::nextToken_(String& s) {
@@ -44,27 +100,27 @@ void BluetoothHandler::handleLine_(const String& line) {
     arg.toUpperCase();
     if (arg == "CONST" || arg == "POWER") {
       sm_.setMode(Mode::ConstantPower);
-      bt_.println("OK MODE POWER");
+      println("OK MODE POWER");
       return;
     }
     if (arg == "TEST" || arg == "LIGHT") {
       sm_.setMode(Mode::LightingTest);
-      bt_.println("OK MODE TEST");
+      println("OK MODE TEST");
       return;
     }
-    bt_.println("ERR INVALID_MODE");
+    println("ERR INVALID_MODE");
     return;
   }
 
   if (cmd == "NEXT") {
     sm_.nextStep();
-    bt_.println("OK NEXT");
+    println("OK NEXT");
     return;
   }
 
   if (cmd == "LIGHT") {
     if (sm_.mode() != Mode::LightingTest) {
-      bt_.println("ERR NOT_IN_TEST_MODE");
+      println("ERR NOT_IN_TEST_MODE");
       return;
     }
 
@@ -73,36 +129,36 @@ void BluetoothHandler::handleLine_(const String& line) {
 
     if (arg == "TAIL") {
       sm_.setTestStep(TestStep::Tail);
-      bt_.println("OK LIGHT TAIL");
+      println("OK LIGHT TAIL");
       return;
     }
     if (arg == "BRAKE") {
       sm_.setTestStep(TestStep::Brake);
-      bt_.println("OK LIGHT BRAKE");
+      println("OK LIGHT BRAKE");
       return;
     }
     if (arg == "LEFT" || arg == "LEFTIND" || arg == "LEFT_IND") {
       sm_.setTestStep(TestStep::LeftIndicator);
-      bt_.println("OK LIGHT LEFT");
+      println("OK LIGHT LEFT");
       return;
     }
     if (arg == "RIGHT" || arg == "RIGHTIND" || arg == "RIGHT_IND") {
       sm_.setTestStep(TestStep::RightIndicator);
-      bt_.println("OK LIGHT RIGHT");
+      println("OK LIGHT RIGHT");
       return;
     }
     if (arg == "REVERSE") {
       sm_.setTestStep(TestStep::Reverse);
-      bt_.println("OK LIGHT REVERSE");
+      println("OK LIGHT REVERSE");
       return;
     }
     if (arg == "FOG" || arg == "REARFOG" || arg == "REAR_FOG") {
       sm_.setTestStep(TestStep::RearFog);
-      bt_.println("OK LIGHT FOG");
+      println("OK LIGHT FOG");
       return;
     }
 
-    bt_.println("ERR INVALID_LIGHT");
+    println("ERR INVALID_LIGHT");
     return;
   }
 
@@ -113,7 +169,7 @@ void BluetoothHandler::handleLine_(const String& line) {
 
     int index = indexStr.toInt();
     if (index < 0 || index >= 8) {
-      bt_.println("ERR INVALID_RELAY");
+      println("ERR INVALID_RELAY");
       return;
     }
 
@@ -123,46 +179,45 @@ void BluetoothHandler::handleLine_(const String& line) {
     } else if (stateStr == "OFF" || stateStr == "0") {
       state = false;
     } else {
-      bt_.println("ERR INVALID_STATE");
+      println("ERR INVALID_STATE");
       return;
     }
 
     sm_.setRelay(index, state);
-    bt_.print("OK RELAY ");
-    bt_.print(index);
-    bt_.print(" ");
-    bt_.println(state ? "ON" : "OFF");
+    println("OK RELAY " + String(index) + " " + (state ? "ON" : "OFF"));
     return;
   }
 
   if (cmd == "STATUS") {
-    bt_.print("MODE: ");
-    bt_.println(sm_.mode() == Mode::ConstantPower ? "POWER" : "TEST");
-    bt_.print("STEP: ");
-    bt_.println(static_cast<int>(sm_.step()));
-    bt_.println("OK");
+    println("MODE: " + String(sm_.mode() == Mode::ConstantPower ? "POWER" : "TEST"));
+    println("STEP: " + String(static_cast<int>(sm_.step())));
+    println("OK");
     return;
   }
 
   if (cmd == "HELP") {
-    bt_.println("Commands:");
-    bt_.println("  MODE POWER|TEST - Set mode");
-    bt_.println("  LIGHT TAIL|BRAKE|LEFT|RIGHT|REVERSE|FOG");
-    bt_.println("    - Select specific light (TEST mode only)");
-    bt_.println("  NEXT - Next test step");
-    bt_.println("  RELAY <0-7> ON|OFF - Control relay");
-    bt_.println("  STATUS - Get current status");
-    bt_.println("  HELP - Show this help");
-    bt_.println("OK");
+    println("Commands:");
+    println("  MODE POWER|TEST - Set mode");
+    println("  LIGHT TAIL|BRAKE|LEFT|RIGHT|REVERSE|FOG");
+    println("  NEXT - Next test step");
+    println("  RELAY <0-7> ON|OFF - Control relay");
+    println("  STATUS - Get current status");
+    println("  HELP - Show this help");
+    println("OK");
     return;
   }
 
-  bt_.println("ERR UNKNOWN_CMD");
+  println("ERR UNKNOWN_CMD");
 }
 
 void BluetoothHandler::update() {
-  while (bt_.available()) {
-    char c = bt_.read();
+  if (rxBuffer_.length() == 0) return;
+
+  String buf = rxBuffer_;
+  rxBuffer_ = "";
+
+  for (size_t i = 0; i < buf.length(); i++) {
+    char c = buf[i];
     if (c == '\n' || c == '\r') {
       if (line_.length() > 0) {
         handleLine_(line_);
@@ -172,7 +227,7 @@ void BluetoothHandler::update() {
       line_ += c;
       if (line_.length() > 128) {
         line_ = "";
-        bt_.println("ERR LINE_TOO_LONG");
+        println("ERR LINE_TOO_LONG");
       }
     }
   }

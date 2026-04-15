@@ -8,6 +8,10 @@ namespace TrailerTesterApp.Services;
 
 public class BluetoothService : IBluetoothService
 {
+    private static readonly Guid UartServiceUuid = Guid.Parse("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
+    private static readonly Guid UartRxUuid = Guid.Parse("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
+    private static readonly Guid UartTxUuid = Guid.Parse("6E400003-B5A3-F393-E0A9-E50E24DCCA9E");
+
     private readonly IAdapter _adapter;
     private readonly IBluetoothLE _bluetoothLE;
     private IDevice _connectedDevice;
@@ -39,7 +43,7 @@ public class BluetoothService : IBluetoothService
             throw new Exception("Bluetooth is not enabled");
         }
 
-        await _adapter.StartScanningForDevicesAsync();
+        await _adapter.StartScanningForDevicesAsync(serviceUuids: new[] { UartServiceUuid });
         await Task.Delay(5000);
         await _adapter.StopScanningForDevicesAsync();
 
@@ -48,20 +52,19 @@ public class BluetoothService : IBluetoothService
 
     private void OnDeviceDiscovered(object sender, DeviceEventArgs e)
     {
-        if (!string.IsNullOrEmpty(e.Device.Name) && 
-            e.Device.Name.Contains("TrailerTester", StringComparison.OrdinalIgnoreCase))
-        {
-            var device = new BluetoothDevice
-            {
-                Name = e.Device.Name,
-                Id = e.Device.Id.ToString(),
-                Rssi = e.Device.Rssi
-            };
+        var name = e.Device.Name;
+        if (string.IsNullOrEmpty(name)) return;
 
-            if (!_discoveredDevices.Any(d => d.Id == device.Id))
-            {
-                _discoveredDevices.Add(device);
-            }
+        var device = new BluetoothDevice
+        {
+            Name = name,
+            Id = e.Device.Id.ToString(),
+            Rssi = e.Device.Rssi
+        };
+
+        if (!_discoveredDevices.Any(d => d.Id == device.Id))
+        {
+            _discoveredDevices.Add(device);
         }
     }
 
@@ -95,26 +98,19 @@ public class BluetoothService : IBluetoothService
 
     private async Task SetupSerialCommunicationAsync()
     {
-        var services = await _connectedDevice.GetServicesAsync();
-        
-        foreach (var service in services)
+        var service = await _connectedDevice.GetServiceAsync(UartServiceUuid);
+        if (service == null)
         {
-            var characteristics = await service.GetCharacteristicsAsync();
-            
-            foreach (var characteristic in characteristics)
-            {
-                if (characteristic.CanWrite)
-                {
-                    _txCharacteristic = characteristic;
-                }
-                
-                if (characteristic.CanUpdate)
-                {
-                    _rxCharacteristic = characteristic;
-                    _rxCharacteristic.ValueUpdated += OnCharacteristicValueUpdated;
-                    await _rxCharacteristic.StartUpdatesAsync();
-                }
-            }
+            throw new Exception("UART service not found on device");
+        }
+
+        _txCharacteristic = await service.GetCharacteristicAsync(UartRxUuid);
+        _rxCharacteristic = await service.GetCharacteristicAsync(UartTxUuid);
+
+        if (_rxCharacteristic != null && _rxCharacteristic.CanUpdate)
+        {
+            _rxCharacteristic.ValueUpdated += OnCharacteristicValueUpdated;
+            await _rxCharacteristic.StartUpdatesAsync();
         }
     }
 

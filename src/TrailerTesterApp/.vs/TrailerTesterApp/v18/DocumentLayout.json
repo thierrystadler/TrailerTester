@@ -1,12 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\GitPriv\\TrailerTester\\src\\TrailerTesterApp\\",
+  "WorkspaceRootPath": "C:\\Git\\TrailerTester\\src\\TrailerTesterApp\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\siy\\AppData\\Local\\Temp\\.vsdbgsrc\\d905f5795c46a5bb573cb378af72fabe985e4edfa6ea71d4bf4fed611e8adbe6\\MainPage.xaml.xsg.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{0D9F413A-E314-C576-6DC6-54ABFFFF4330}|TrailerTesterApp.csproj|c:\\gitpriv\\trailertester\\src\\trailertesterapp\\services\\bluetoothservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{0D9F413A-E314-C576-6DC6-54ABFFFF4330}|TrailerTesterApp.csproj|c:\\git\\trailertester\\src\\trailertesterapp\\services\\bluetoothservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{0D9F413A-E314-C576-6DC6-54ABFFFF4330}|TrailerTesterApp.csproj|solutionrelative:services\\bluetoothservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -70,25 +67,12 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "MainPage.xaml.xsg.cs",
-              "DocumentMoniker": "C:\\Users\\siy\\AppData\\Local\\Temp\\.vsdbgsrc\\d905f5795c46a5bb573cb378af72fabe985e4edfa6ea71d4bf4fed611e8adbe6\\MainPage.xaml.xsg.cs",
-              "RelativeDocumentMoniker": "..\\..\\..\\..\\Users\\siy\\AppData\\Local\\Temp\\.vsdbgsrc\\d905f5795c46a5bb573cb378af72fabe985e4edfa6ea71d4bf4fed611e8adbe6\\MainPage.xaml.xsg.cs",
-              "ToolTip": "C:\\Users\\siy\\AppData\\Local\\Temp\\.vsdbgsrc\\d905f5795c46a5bb573cb378af72fabe985e4edfa6ea71d4bf4fed611e8adbe6\\MainPage.xaml.xsg.cs [Read Only]",
-              "RelativeToolTip": "..\\..\\..\\..\\Users\\siy\\AppData\\Local\\Temp\\.vsdbgsrc\\d905f5795c46a5bb573cb378af72fabe985e4edfa6ea71d4bf4fed611e8adbe6\\MainPage.xaml.xsg.cs [Read Only]",
-              "ViewState": "AgIAAKYBAAAAAAAAAAAawL0BAABxAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-14T13:24:45.274Z",
-              "EditorCaption": " [Read Only]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
               "Title": "BluetoothService.cs",
-              "DocumentMoniker": "C:\\GitPriv\\TrailerTester\\src\\TrailerTesterApp\\Services\\BluetoothService.cs",
+              "DocumentMoniker": "C:\\Git\\TrailerTester\\src\\TrailerTesterApp\\Services\\BluetoothService.cs",
               "RelativeDocumentMoniker": "Services\\BluetoothService.cs",
-              "ToolTip": "C:\\GitPriv\\TrailerTester\\src\\TrailerTesterApp\\Services\\BluetoothService.cs",
+              "ToolTip": "C:\\Git\\TrailerTester\\src\\TrailerTesterApp\\Services\\BluetoothService.cs",
               "RelativeToolTip": "Services\\BluetoothService.cs",
-              "ViewState": "AgIAADQAAAAAAAAAAADgv0kAAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAABsAAAAAAAAAAIA9wDIAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-14T13:17:03.463Z",
               "EditorCaption": ""
