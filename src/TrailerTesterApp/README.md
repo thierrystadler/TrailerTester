@@ -4,9 +4,10 @@
 
 ## Features
 
-- **Bluetooth connection**: Scan and connect to TrailerTester devices
+- **BLE connection**: Scan and connect to TrailerTester devices via Bluetooth Low Energy (Nordic UART Service)
 - **Mode switching**: Toggle between constant power and lighting test mode
 - **Light control**: Select individual trailer lights (only one active at a time)
+- **All Off**: Turn all lights off with a single tap
 - **Real-time feedback**: View command responses and status messages from the ESP32
 - **Cross-platform**: Runs on Android and iOS
 
@@ -48,6 +49,9 @@ Select a single light (only one active at a time):
 - **Rear Fog** — Rear fog light
 
 Use "Next Step" to cycle through all lights sequentially.
+Use "All Off" to turn all lights off.
+
+On startup all lights are off. After cycling past the last step (Rear Fog), lights automatically return to off.
 
 ## Bluetooth commands
 
@@ -63,6 +67,8 @@ The app sends the following commands to the ESP32:
 | `LIGHT RIGHT` | Turn on right indicator |
 | `LIGHT REVERSE` | Turn on reverse light |
 | `LIGHT FOG` | Turn on rear fog light |
+| `LIGHT OFF` | Turn all lights off (test mode) |
+| `ALLOFF` | Turn all lights off (any mode) |
 | `NEXT` | Next test step |
 | `STATUS` | Query current status |
 
@@ -81,13 +87,13 @@ The app sends the following commands to the ESP32:
 
 ## Troubleshooting
 
-- **Device not found**: Is Bluetooth enabled? Is the ESP32 powered on? Location permission granted (required on Android)?
-- **Connection failed**: Restart the ESP32, ensure no other device is connected
+- **Device not found**: Is Bluetooth enabled? Is the ESP32 powered on? Location permission granted (required on Android)? The app scans for BLE devices advertising the Nordic UART Service UUID.
+- **Connection failed**: Restart the ESP32, ensure no other device is connected via BLE
 - **Commands not working**: Check connection status, review the messages log, verify you are in the correct mode
 
 ## Architecture
 
-- **Services/** — `BluetoothService`: BLE communication via Plugin.BLE
+- **Services/** — `BluetoothService`: BLE communication via Plugin.BLE (Nordic UART Service UUIDs)
 - **ViewModels/** — `MainViewModel`: UI state and command logic
 - **MainPage.xaml** — User interface
 - **Converters/** — `InvertedBoolConverter` for UI bindings

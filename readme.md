@@ -26,7 +26,7 @@ It can also provide a **12V constant output** (depending on your power electroni
 - 18V battery pack (e.g. common cordless-tool battery)
 - DC/DC buck converter **18V → 12V** (sized for your expected current)
 - DC/DC buck converter or regulator **12V → 5V** (to power the ESP32)
-- **Mode switch** — toggles between *constant 12V power* and *lighting test* mode
+- **Mode button** (with LED) — toggles between *constant 12V power* and *lighting test* mode; LED lights up in power mode
 - **Step button** — advances to the next lighting circuit during testing
 - Fuse(s) on the 12V side (strongly recommended)
 - 7-pin and/or 13-pin trailer socket
@@ -34,35 +34,55 @@ It can also provide a **12V constant output** (depending on your power electroni
 
 ## Wiring / pinout
 
+### ESP32 GPIO assignment
+
+| GPIO | Function | Notes |
+|------|----------|-------|
+| 23 | Relay 0 — Constant power (mode) | Active in power mode |
+| 22 | Relay 1 — Tail / parking lights | |
+| 21 | Relay 2 — Brake lights | |
+| 19 | Relay 3 — Left indicator | |
+| 18 | Relay 4 — Right indicator | |
+| 17 | Relay 5 — Reverse light | |
+| 16 | Relay 6 — Rear fog light | |
+| 4  | Relay 7 — Auxiliary | |
+| 32 | Mode button | INPUT_PULLUP, button to GND |
+| 25 | Mode button LED | OUTPUT, lights up in power mode |
+| 33 | Next step button | INPUT_PULLUP, button to GND |
+
+Relays are active-low (relay board turns on when GPIO is LOW).
+
+Both buttons use the ESP32's internal pull-up resistor (`INPUT_PULLUP`) — no external pull-up resistor is needed.
+Wire each button between the GPIO pin and **GND**. The mode button LED requires an external resistor (~220 Ω) in series between GPIO 25 and the LED anode.
+
+### Trailer connector pinout
+
 **Important:** Pin assignments can vary by region/application and mistakes can damage equipment.
 Verify the ISO standard and your connector/socket wiring before powering anything.
 
-Recommended: document your mapping in separate files, e.g.:
+See the detailed pinout documentation:
 
-- `docs/pinout-7pin.md`
-- `docs/pinout-13pin.md`
-
-Document at least:
-
-- Which trailer pin is connected to which output channel
-- Which Arduino pin controls that channel
-- Which channels are “switched” vs “constant 12V”
+- [`docs/pinout-7pin.md`](docs/pinout-7pin.md) — 7-pin (ISO 1724)
+- [`docs/pinout-13pin.md`](docs/pinout-13pin.md) — 13-pin (ISO 11446)
 
 ## How to use
 
 1. Connect the trailer plug to the tester's 7-pin or 13-pin socket.
 2. Power the tester using the 18V battery.
-3. Use the **mode switch** to select:
-   - **Constant power** — relay 1 provides 12V permanently (for pumps, lights, etc.)
-   - **Lighting test** — step through each circuit one at a time
+3. Press the **mode button** to toggle between:
+   - **Constant power** — relay 1 provides 12V permanently (for pumps, lights, etc.); mode LED is on
+   - **Lighting test** — step through each circuit one at a time; mode LED is off
 4. In lighting-test mode, press the **step button** to cycle through:
+   - All off (default on startup)
    - Tail / parking lights
    - Brake lights
    - Left indicator (blinks at normal cycle)
    - Right indicator (blinks at normal cycle)
    - Reverse light
    - Rear fog light
+   - All off (after last step)
 5. Only one circuit is active at a time to keep battery load low.
+6. Lights can also be controlled from the **companion app** via BLE, including an **All Off** command.
 
 ## Safety notes
 
@@ -84,7 +104,7 @@ src/
     StateMachine.h / .cpp      Mode & test-step logic
     TestSequence.h             Pure step-sequencing (shared with tests)
     Commands.h / .cpp          Serial command interface
-    BluetoothHandler.h / .cpp  Bluetooth Serial command interface
+    BluetoothHandler.h / .cpp  BLE (Nordic UART Service) command interface
   TrailerTesterApp/            .NET MAUI mobile app (Android & iOS)
     Services/                  Bluetooth communication service
     ViewModels/                UI state and command logic
@@ -114,6 +134,7 @@ It connects to the ESP32 via Bluetooth and allows:
 
 - Switching between **Power Mode** and **Test Mode**
 - Selecting individual lights (Tail, Brake, Left/Right Indicator, Reverse, Rear Fog)
+- **All Off** — turn all lights off with a single tap
 - Viewing real-time status and command responses
 
 See [`src/TrailerTesterApp/README.md`](src/TrailerTesterApp/README.md) for details.
