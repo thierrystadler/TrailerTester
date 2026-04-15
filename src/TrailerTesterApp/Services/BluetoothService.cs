@@ -1,6 +1,7 @@
 using Plugin.BLE;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
+using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Exceptions;
 using System.Text;
 
@@ -18,6 +19,8 @@ public class BluetoothService : IBluetoothService
     private ICharacteristic _txCharacteristic;
     private ICharacteristic _rxCharacteristic;
     private readonly List<BluetoothDevice> _discoveredDevices = new();
+    private readonly Dictionary<string, IDevice> _nativeDevices = new();
+    private CancellationTokenSource _scanCts;
 
     public event EventHandler<string> MessageReceived;
     public event EventHandler<bool> ConnectionChanged;
@@ -37,15 +40,29 @@ public class BluetoothService : IBluetoothService
     public async Task<List<BluetoothDevice>> ScanForDevicesAsync()
     {
         _discoveredDevices.Clear();
+        _nativeDevices.Clear();
+        _scanCts?.Cancel();
+        _scanCts = new CancellationTokenSource();
+
+        await EnsurePermissionsAsync();
 
         if (!_bluetoothLE.IsOn)
         {
             throw new Exception("Bluetooth is not enabled");
         }
 
-        await _adapter.StartScanningForDevicesAsync(serviceUuids: new[] { UartServiceUuid });
-        await Task.Delay(5000);
-        await _adapter.StopScanningForDevicesAsync();
+        _adapter.ScanTimeout = 5000;
+
+        try
+        {
+            await _adapter.StartScanningForDevicesAsync(
+                serviceUuids: new[] { UartServiceUuid },
+                cancellationToken: _scanCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Scan was stopped early because a device was found
+        }
 
         return _discoveredDevices.ToList();
     }
@@ -65,19 +82,63 @@ public class BluetoothService : IBluetoothService
         if (!_discoveredDevices.Any(d => d.Id == device.Id))
         {
             _discoveredDevices.Add(device);
+            _nativeDevices[device.Id] = e.Device;
+            _scanCts?.Cancel();
         }
+    }
+
+    private static async Task EnsurePermissionsAsync()
+    {
+#if ANDROID
+        var status = await Permissions.CheckStatusAsync<Permissions.Bluetooth>();
+        if (status != PermissionStatus.Granted)
+        {
+            status = await Permissions.RequestAsync<Permissions.Bluetooth>();
+        }
+
+        var locationStatus = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+        if (locationStatus != PermissionStatus.Granted)
+        {
+            locationStatus = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+        }
+
+        if (status != PermissionStatus.Granted || locationStatus != PermissionStatus.Granted)
+        {
+            throw new Exception("Bluetooth and location permissions are required for scanning");
+        }
+#elif IOS
+        // iOS permissions are handled via Info.plist and system prompts
+        await Task.CompletedTask;
+#else
+        await Task.CompletedTask;
+#endif
     }
 
     public async Task<bool> ConnectAsync(BluetoothDevice device)
     {
         try
         {
+            await EnsurePermissionsAsync();
+
+            // Stop any ongoing scan — Android won't connect while scanning
+            await _adapter.StopScanningForDevicesAsync();
+            await Task.Delay(200);
+
+            var connectParams = new ConnectParameters(forceBleTransport: true);
+
             var bleDevice = _adapter.ConnectedDevices.FirstOrDefault(d => d.Id.ToString() == device.Id);
-            
+
+            if (bleDevice == null && _nativeDevices.TryGetValue(device.Id, out var nativeDevice))
+            {
+                System.Diagnostics.Debug.WriteLine($"Connecting via native device...");
+                await _adapter.ConnectToDeviceAsync(nativeDevice, connectParams);
+                bleDevice = nativeDevice;
+            }
+
             if (bleDevice == null)
             {
-                var knownDevice = await _adapter.ConnectToKnownDeviceAsync(Guid.Parse(device.Id));
-                bleDevice = knownDevice;
+                System.Diagnostics.Debug.WriteLine($"Connecting via known device ID...");
+                bleDevice = await _adapter.ConnectToKnownDeviceAsync(Guid.Parse(device.Id), connectParams);
             }
 
             if (bleDevice != null)
@@ -91,7 +152,12 @@ public class BluetoothService : IBluetoothService
         }
         catch (DeviceConnectionException ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Connection failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Connection failed (DeviceConnectionException): {ex.Message}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Connection failed: {ex.GetType().Name}: {ex.Message}");
             return false;
         }
     }

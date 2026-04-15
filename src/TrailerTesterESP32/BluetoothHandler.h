@@ -33,6 +33,11 @@ class BluetoothHandler : public BLEServerCallbacks,
   BLEServer* pServer_ = nullptr;
   BLECharacteristic* pTxCharacteristic_ = nullptr;
 
+  static constexpr uint32_t CONNECTION_TIMEOUT_MS = 10000;
+  uint32_t lastActivityMs_ = 0;
+  uint32_t lastWatchdogCheckMs_ = 0;
+
   void handleLine_(const String& line);
+  void checkConnectionWatchdog_();
   static String nextToken_(String& s);
 };

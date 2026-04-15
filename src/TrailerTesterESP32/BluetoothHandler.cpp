@@ -44,6 +44,7 @@ bool BluetoothHandler::isConnected() { return connected_; }
 
 void BluetoothHandler::onConnect(BLEServer* pServer) {
   connected_ = true;
+  lastActivityMs_ = millis();
   Serial.println("BLE client connected");
 }
 
@@ -57,6 +58,7 @@ void BluetoothHandler::onWrite(BLECharacteristic* pCharacteristic) {
   String value = pCharacteristic->getValue().c_str();
   if (value.length() > 0) {
     rxBuffer_ += value;
+    lastActivityMs_ = millis();
   }
 }
 
@@ -222,7 +224,36 @@ void BluetoothHandler::handleLine_(const String& line) {
   println("ERR UNKNOWN_CMD");
 }
 
+void BluetoothHandler::checkConnectionWatchdog_() {
+  if (!connected_) return;
+
+  const uint32_t now = millis();
+  if ((now - lastWatchdogCheckMs_) < 2000) return;
+  lastWatchdogCheckMs_ = now;
+
+  if (pServer_->getConnectedCount() == 0) {
+    Serial.println("BLE watchdog: connection lost, restarting advertising");
+    connected_ = false;
+    line_ = "";
+    rxBuffer_ = "";
+    BLEDevice::startAdvertising();
+    return;
+  }
+
+  if ((now - lastActivityMs_) > CONNECTION_TIMEOUT_MS) {
+    Serial.println("BLE watchdog: no activity, disconnecting stale client");
+    pServer_->disconnect(pServer_->getConnId());
+    connected_ = false;
+    line_ = "";
+    rxBuffer_ = "";
+    delay(100);
+    BLEDevice::startAdvertising();
+  }
+}
+
 void BluetoothHandler::update() {
+  checkConnectionWatchdog_();
+
   if (rxBuffer_.length() == 0) return;
 
   String buf = rxBuffer_;
